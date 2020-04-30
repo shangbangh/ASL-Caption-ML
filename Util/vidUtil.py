@@ -43,16 +43,16 @@ def getFPS(inputVid):
     fps = vid.get(cv2.CAP_PROP_FPS) 
     return fps    
 
-#creates directory of tagged videos from an input csv file and an input video directory 
-#rows start at 1
+#creates directory of tagged videos from an input csv file and an input video file directory
+#rows start at 1 
 #get the sign label from column 2
 #end frames from column 9
 #start frames from column 8
 #video number from column 5
-def tagger(inputFile, inputVidDir, outputDir):
+#if endrow is 0 or less than startrow, reads entire file
+def tagger(inputFile, inputVidDir, outputDir, startRow, endRow):
     #amount of frames on either side
     frameBufferValue = 20
-    startRow = 1
     startCol = 8
     endCol = 9
     labelCol = 2
@@ -70,26 +70,49 @@ def tagger(inputFile, inputVidDir, outputDir):
             vidNum = columns[vidCol][rowCounter]
             #get the video number from the input video
             vidString = "scene{num}-camera1.avi".format(num = vidNum)
-            inputVid = inputVidDir + '/'+ vidString
-            print(inputVid)
+            
+            inputVid = inputVidDir + vidString
             #get the sign label from column 2
-            if(rowCounter > startRow):
-                #get sign label
-                signLabel = columns[labelCol][rowCounter]   
-                
-                #get the frames that the label is associated with             
-                startFrame = int(columns[startCol][rowCounter]) - frameBufferValue              
-                endFrame = int(columns[endCol][rowCounter]) + frameBufferValue
-                #get frame rate of video
-                fps = getFPS(inputVid)
-                if(fps == 0):
-                    break
-                #get timestamps using fps and frame numbers
-                startTime = startFrame/fps
-                endTime = endFrame/fps
-                # create directory if it doesnt exist
-                if not os.path.exists(outputDir):
-                    os.makedirs(outputDir)
-                #create a new video file containing only the frames indicated
-                ffmpeg_extract_subclip(inputVid, startTime ,endTime, targetname= outputDir + '/'+ signLabel + ".avi")
-            rowCounter += 1
+            
+            if(endRow < startRow):
+                if(rowCounter > startRow):
+                    #get sign label
+                    signLabel = columns[labelCol][rowCounter]   
+                    print(vidString + " " + signLabel)
+                    #get the frames that the label is associated with             
+                    startFrame = int(columns[startCol][rowCounter]) - frameBufferValue              
+                    endFrame = int(columns[endCol][rowCounter]) + frameBufferValue
+                    #get frame rate of video
+                    fps = getFPS(inputVid)
+                    if(fps == 0):
+                        break
+                    #get timestamps using fps and frame numbers
+                    startTime = startFrame/fps
+                    endTime = endFrame/fps
+                    # create directory if it doesnt exist
+                    if not os.path.exists(outputDir):
+                        os.makedirs(outputDir)
+                    #create a new video file containing only the frames indicated
+                    ffmpeg_extract_subclip(inputVid, startTime ,endTime, targetname= outputDir + '/'+ signLabel + ".avi")
+                rowCounter += 1
+            else:
+                if(rowCounter > startRow and rowCounter < endRow):
+                    #get sign label
+                    signLabel = columns[labelCol][rowCounter]   
+                    print(vidString + " " + signLabel)
+                    #get the frames that the label is associated with             
+                    startFrame = int(columns[startCol][rowCounter]) - frameBufferValue              
+                    endFrame = int(columns[endCol][rowCounter]) + frameBufferValue
+                    #get frame rate of video
+                    fps = getFPS(inputVid)
+                    if(fps == 0):
+                        break
+                    #get timestamps using fps and frame numbers
+                    startTime = startFrame/fps
+                    endTime = endFrame/fps
+                    # create directory if it doesnt exist
+                    if not os.path.exists(outputDir):
+                        os.makedirs(outputDir)
+                    #create a new video file containing only the frames indicated
+                    ffmpeg_extract_subclip(inputVid, startTime ,endTime, targetname= outputDir + '/'+ signLabel + ".avi")
+                rowCounter += 1
